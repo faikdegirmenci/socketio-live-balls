@@ -33,6 +33,8 @@ app.controller('indexController', ['$scope', 'indexFactory', ($scope, indexFacto
             reconnectionDelay: 600
         };
         try {
+            //const socketUrl = await configFactory.getConfig();
+            //console.log(socketUrl.data.socketUrl);
             const socket = await indexFactory.connectSocket('http://localhost:3000', connectionOptions);
 
             socket.emit('newUser', { username });
