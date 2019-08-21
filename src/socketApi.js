@@ -1,23 +1,28 @@
 const socketio = require('socket.io');
 const io = socketio();
 
-const socketApi = { };
+const socketApi = {};
 socketApi.io = io;
 
-const users= { };
+const users = {};
 
-io.on('connection', (socket)=>{
+//helper
+
+const randomColor = require('../helper/randomColor');
+
+io.on('connection', (socket) => {
     console.log('a user connected');
 
-    socket.on('newUser', (data)=>{
+    socket.on('newUser', (data) => {
         const defaultData = {
             id: socket.id,
             position: {
-                x:0,
-                y:0
-            }
+                x: 0,
+                y: 0
+            },
+            color: randomColor()
         }
-        const userData = Object.assign(data,defaultData);// assign birleştirme işlemini yapıyor.
+        const userData = Object.assign(data, defaultData);// assign birleştirme işlemini yapıyor.
         users[socket.id] = (userData);
 
         socket.broadcast.emit('newUser', users[socket.id]);
@@ -25,9 +30,25 @@ io.on('connection', (socket)=>{
     });
 
     socket.on('disconnect', () => {
-        socket.broadcast.emit('disUser',users[socket.id]);
+        socket.broadcast.emit('disUser', users[socket.id]);
         delete users[socket.id];
-        console.log(users);
+    });
+
+    socket.on('animate', (data) => {
+        try {
+            users[socket.id].position.x = data.x;
+            users[socket.id].position.y = data.y;
+
+            socket.broadcast.emit('animate', { socketId: socket.id, x: data.x, y: data.y });
+        } catch (error) {
+            console.log(error);
+        }
+
+    });
+
+    socket.on('newMessage', (data) => {
+        const messageData = Object.assign({ socketId: socket.id }, data);
+        socket.broadcast.emit('newMessage', messageData);
     });
 });
 
